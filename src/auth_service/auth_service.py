@@ -151,7 +151,7 @@ def run_auth_service():
 
         if not result or result[0] != given_username or result[1] != given_password:
             if LOGGING:
-                logger.warning("Username or password are not correct.", given_username)
+                logger.warning("Username or password are not correct: %s", given_username)
             raise HTTPException(status_code=401, detail="Username or password are incorrect")
 
         # Create auth and refresh token
@@ -165,9 +165,11 @@ def run_auth_service():
     return server
 
 
-run_auth_service()
+server = run_auth_service()
+
 
 # Unit tests
+
 def test_login():
     server = run_auth_service()
     client = TestClient(server)
