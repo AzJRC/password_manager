@@ -1,6 +1,8 @@
 import logging, jwt, datetime, os
 from typing import Annotated
 
+from dotenv import load_dotenv
+
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -25,27 +27,28 @@ if LOGGING:
 
 
 # Database parameters
-config = {    
-        """
-        Configuration parameters provided by system environment variables. There are
-        default values in case those envs were not initialized.
 
-        + MYSQL_USER: [STRING] The user that can access the MySQL database for authentication.
-        + MYSQL_PASSWORD: [STRING] The password for MYSQL_USER.
-        + MYSQL_HOST: [STRING] IP, hostname, or domain of the device where the database is allocated.
-        + MYSQL_PORT: [STRING] Port atwhich MySQL.service is running.
-        + MYSQL_DB: [STRING] Database where user's information will be stored..
-  
-        + JWT_SECRET: [STRING] A signature to ensure the validity of the JWT token.
-        + JWT_EXPIRATION: [INT] Number of MINUTES the JWT will be acceptable.
-        + JWT_ALGORITHM: [STRING] Algorithm used for signing process.
-        """
-            
-        'MYSQL_USER': os.getenv('MYSQL_USER', 'auth'),
-        'MYSQL_PASSWORD': os.getenv('MYSQL_PASSWORD', 'auth-2357'),
+"""
+Configuration parameters provided by system environment variables. There are
+default values in case those envs were not initialized.
+
++ MYSQL_USER: [STRING] The user that can access the MySQL database for authentication.
++ MYSQL_PASSWORD: [STRING] The password for MYSQL_USER.
++ MYSQL_HOST: [STRING] IP, hostname, or domain of the device where the database is allocated.
++ MYSQL_PORT: [STRING] Port atwhich MySQL.service is running.
++ MYSQL_DB: [STRING] Database where user's information will be stored..
+
++ JWT_SECRET: [STRING] A signature to ensure the validity of the JWT token.
++ JWT_EXPIRATION: [INT] Number of MINUTES the JWT will be acceptable.
++ JWT_ALGORITHM: [STRING] Algorithm used for signing process.
+"""
+load_dotenv()
+config = {     
+        'MYSQL_USER': os.getenv('MYSQL_USER'),
+        'MYSQL_PASSWORD': os.getenv('MYSQL_PASSWORD'),
         'MYSQL_HOST': os.getenv('MYSQL_HOST', 'localhost'),
         'MYSQL_PORT': os.getenv('MYSQL_PORT', '3306'),
-        'MYSQL_DB': os.getenv('MYSQL_DB', 'auth'),
+        'MYSQL_DB': os.getenv('MYSQL_DB'),
 
         'JWT_SECRET': os.getenv('JWT_SECRET', '1234abcd'),
         'JWT_EXPIRATION': os.getenv('JWT_EXPIRATION', 30),
@@ -157,15 +160,15 @@ def run_auth_service():
 run_auth_service()
 
 # Unit tests
-def test_login(server):
+def test_login():
+    server = run_auth_service()
     client = TestClient(server)
     response = client.post(
             "/login", 
-            data={"username": "rodajrc", "password": "1234"}
+            data={"username": "testuser", "password": "1234"}
             )
     assert response.status_code == 200
 
 
 if __name__ == "__main__":  
-    server = run_auth_service()
-    test_login(server)
+    test_login()
