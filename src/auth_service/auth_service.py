@@ -1,23 +1,15 @@
-import logging, jwt, datetime, os
+import logging, json, jwt, datetime, os
 from typing import Annotated
-
 from dotenv import load_dotenv
-
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-
 from pydantic import BaseModel
-
 from jwt.exceptions import InvalidTokenError
-
 from passlib.context import CryptContext
-
 from fastapi.testclient import TestClient 
-
 
 # Logging for debugging
 LOGGING = True
@@ -43,47 +35,52 @@ default values in case those envs were not initialized.
 + JWT_ALGORITHM: [STRING] Algorithm used for signing process.
 """
 load_dotenv()
-config = {     
+
+config = {
         'MYSQL_USER': os.getenv('MYSQL_USER'),
         'MYSQL_PASSWORD': os.getenv('MYSQL_PASSWORD'),
         'MYSQL_HOST': os.getenv('MYSQL_HOST', 'localhost'),
         'MYSQL_PORT': os.getenv('MYSQL_PORT', '3306'),
         'MYSQL_DB': os.getenv('MYSQL_DB'),
-
         'JWT_SECRET': os.getenv('JWT_SECRET', '1234abcd'),
         'JWT_EXPIRATION': os.getenv('JWT_EXPIRATION', 30),
-        'JWT_ALGORITHM': os.getenv('JWT_ALGORITHM','HS256')
+        'JWT_ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256')
 }
 
+# Schemas
 
-# Schemas    
+"""
+This schema defines the PUBLIC information that defines a User. Private information of a user
+is defines in the SensibleUser schema.
+"""
+
+
 class User(BaseModel):
-    """
-    This schema defines the PUBLIC information that defines a User. Private information of a user
-    is defines in the SensibleUser schema.
-    """
     username: str
     email: str
 
+
+"""
+This schema defines PRIVATE information that defines a User.
+- Subclass of the User class.
+"""
+
+
 class SensibleUser(User):
-    """
-    This schema defines PRIVATE information that defines a User.
-    - Subclass of the User class.
-    """
     password: str
 
 
 # Authentication service calling function
 def run_auth_service():
     """
-    Create a FastAPI web sever and authenticates user given the required credentials.
+    Create a FastAPI web sever and authenticates user given
+    the required credentials.
     It will send a HTTP response according to the client request.
-    
     + HTTP 200 if credentials are correct + a Bearer JWT access token.
     - HTTP 40X if credentials are incorrect.
     - HTTP 500 if there is an error at querying the database.
-
-    RETURN: An instance of the FastAPI web server (used exclusively for the unit tests) 
+    RETURN: An instance of the FastAPI web server (used exclusively
+    for the unit tests)
     """
 
     server = FastAPI()
@@ -94,26 +91,35 @@ def run_auth_service():
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base = declarative_base()
 
-   
-   # Security variables
+    # Security variables
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-    
     # Functions
     def create_token(user: User):
         """
         Create a JWT token given the user's infomation.
 
         PARAMETERS:
-        + user: [User #Schema] The user information to whom will provide an access or refresh token
+        + user: [User #Schema] The user information to whom will
+        provide an access or refresh token
 
         RETURN: [STRING] A jwt bearer token.
         """
 
-        jwt_token_info = {"username": user.username}
-        jwt_token = 'tmp'
-        return jwt_token
+        CURRENT_TIME = datetime.datetime.now(tz=datetime.timezone.utc)
+        TIME_DELTA = 60*config['JWT_EXPIRATION'] if config['JWT_EXPIRATION'] else 60*30       
 
+        jwt_payload = {
+                "username": user.username,
+                "expiration": (CURRENT_TIME + datetime.timedelta(seconds=TIME_DELTA)).isoformat(), 
+                "issued_at": (CURRENT_TIME).isoformat()
+                }
+        jwt_token = jwt.encode(
+                payload=jwt_payload,
+                key=config['JWT_SECRET'],
+                algorithm=config['JWT_ALGORITHM']
+                )
+        return jwt_token
 
     # Routes
     @server.post("/login")
@@ -129,7 +135,7 @@ def run_auth_service():
                 logger.warning("Missing username or password for login attempt.")
             raise HTTPException(status_code=401, detail="Missing username or password")
 
-        #Verify if the user exists in the database
+        # Verify if the user exists in the database
         with engine.connect() as con:
             if LOGGING:
                 logger.info("Connecting to database for user: %s", given_username)
@@ -140,26 +146,30 @@ def run_auth_service():
                         ).fetchone()
             except Exception as e:
                 if LOGGING:
-                    logger.error("Something went wrong.")
+                    logger.error("Something went wrong: %s", e)
                     raise HTTPException(status_code=500, detail="Something went wrong in the server")
 
         if not result or result[0] != given_username or result[1] != given_password:
             if LOGGING:
-                logger.warning("Username or password are not correct.", given_username)
+                logger.warning("Username or password are not correct: %s", given_username)
             raise HTTPException(status_code=401, detail="Username or password are incorrect")
 
-        #Create auth and refresh token
+        # Create auth and refresh token
         user = User(username=result[0], email=result[2])
         auth_token = create_token(user)
 
         if LOGGING:
             logger.info("User %s logged in successfully. Token: %s", given_username, auth_token)
-        return {"access_token": auth_token, "token_type": "bearer"}   
+        return {"access_token": auth_token, "token_type": "bearer"}
+
     return server
 
-run_auth_service()
+
+server = run_auth_service()
+
 
 # Unit tests
+
 def test_login():
     server = run_auth_service()
     client = TestClient(server)
