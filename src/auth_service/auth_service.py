@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
@@ -18,7 +19,7 @@ if LOGGING:
     logger = logging.getLogger(__name__)
 
 
-# Database parameters
+# Configuration parameters
 
 """
 Configuration parameters provided by system environment variables. There are
@@ -34,8 +35,8 @@ default values in case those envs were not initialized.
 + JWT_EXPIRATION: [INT] Number of MINUTES the JWT will be acceptable.
 + JWT_ALGORITHM: [STRING] Algorithm used for signing process.
 """
-load_dotenv()
 
+load_dotenv()
 config = {
         'MYSQL_USER': os.getenv('MYSQL_USER'),
         'MYSQL_PASSWORD': os.getenv('MYSQL_PASSWORD'),
@@ -92,6 +93,7 @@ def run_auth_service():
     Base = declarative_base()
 
     # Security variables
+    crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
     # Functions
@@ -122,23 +124,70 @@ def run_auth_service():
         return jwt_token
 
     # Routes
+    @server.post("/register")
+    async def register(form_data: SensibleUser):
+        given_username = form_data.username
+        given_password = form_data.password
+        given_email = form_data.email
+
+        if not given_username or not given_password or not given_email:
+            if LOGGING:
+                logger.warning("Missing username, password or email for register attempt.")
+            raise HTTPException(status_code=401, detail="Missing username, password or email")
+
+        if LOGGING:
+            logger.info("Register attempt for user: %s - %s", given_username, given_email)
+        
+        # (TODO: Verify email address? )
+
+        # Hash password (TODO: implement salting)
+        hashed_password = crypto_context.hash(given_password) 
+        
+        # Store username in database 
+        with engine.connect() as con:
+            if LOGGING:
+                logger.info("Registering user...")
+            try:
+                con.execute(
+                    text("""INSERT INTO auth (username, email, password) VALUES (:username, :email,
+                        :password)"""),
+                    {"username": given_username, "email": given_email, "password": hashed_password}
+                )
+            except IntegrityError:
+                if LOGGING:
+                    logger.warning("The username or email provided are already in use.")
+               
+                con.rollback()
+                raise HTTPException(status_code=400, detail="The username or email is already in use")
+            except Exception as e:
+                if LOGGING:
+                    logger.error("Something went wrong: %s", e)
+                con.rollback()
+                raise HTTPException(status_code=500, detail="Something went wrong in the server")
+            
+            con.commit()
+
+        if LOGGING:
+            logger.info("User %s registered in successfully.", given_username)
+        return {"message": "Success"} 
+
     @server.post("/login")
     async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         given_username = form_data.username
         given_password = form_data.password
-
-        if LOGGING:
-            logger.info("Login attempt for user: %s", given_username)
 
         if not given_username or not given_password:
             if LOGGING:
                 logger.warning("Missing username or password for login attempt.")
             raise HTTPException(status_code=401, detail="Missing username or password")
 
+        if LOGGING:
+            logger.info("Login attempt for user: %s", given_username)
+
         # Verify if the user exists in the database
         with engine.connect() as con:
             if LOGGING:
-                logger.info("Connecting to database for user: %s", given_username)
+                logger.info("Loging in user...")
             try:
                 result = con.execute(
                         text("SELECT username, password, email FROM auth WHERE username=:username"),
@@ -147,7 +196,7 @@ def run_auth_service():
             except Exception as e:
                 if LOGGING:
                     logger.error("Something went wrong: %s", e)
-                    raise HTTPException(status_code=500, detail="Something went wrong in the server")
+                raise HTTPException(status_code=500, detail="Something went wrong in the server")
 
         if not result or result[0] != given_username or result[1] != given_password:
             if LOGGING:
