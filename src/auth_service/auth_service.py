@@ -13,7 +13,7 @@ from passlib.context import CryptContext
 from fastapi.testclient import TestClient 
 
 # Logging for debugging
-LOGGING = True
+LOGGING = False
 if LOGGING:
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -197,8 +197,14 @@ def run_auth_service():
                 if LOGGING:
                     logger.error("Something went wrong: %s", e)
                 raise HTTPException(status_code=500, detail="Something went wrong in the server")
+        try: 
+            password_match = crypto_context.verify(given_password, result[1])
+        except Exception as e:
+            if LOGGING:
+                logger.error("Something went wrong: %s", e)
+            raise HTTPException(status_code=500, detail="Something went wrong in the server")
 
-        if not result or result[0] != given_username or result[1] != given_password:
+        if not result or result[0] != given_username or not password_match: 
             if LOGGING:
                 logger.warning("Username or password are not correct: %s", given_username)
             raise HTTPException(status_code=401, detail="Username or password are incorrect")

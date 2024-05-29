@@ -5,21 +5,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     default-libmysqlclient-dev \
     pkg-config && \
-    apt-get clean && \ 
+    apt-get clean && \
     pip install --no-cache-dir --upgrade pip && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /auth_service
 
 # Copy requirements.txt first to leverage Docker cache
-COPY ./requirements.txt /auth_service
+COPY ./requirements.txt /auth_service/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r /auth_service/requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY . /auth_service
+COPY . .
 
-EXPOSE 8080
+EXPOSE 8000
 
-CMD ["python3", "auth_service.py"]
+# Specify the command to run
+CMD ["uvicorn", "auth_service:app", "--host", "0.0.0.0", "--port", "8000"]
+
