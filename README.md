@@ -6,6 +6,8 @@ This projects aims to build a web-based passoword manager. A pasword manager (Fr
 
 A PM has certain standard requirements that we must address in order to succesfully deploy a trusthworty application.
 
+![Project Diagram](./README_imgs/pswd_mgr_diagram.svg "Pasword Manager System Architecture")
+
 ### Functional requirements
 
 1. Web interface: The application must have a web interface where the users can access their dedicated password managers.

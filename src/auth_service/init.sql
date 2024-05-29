@@ -10,6 +10,3 @@ CREATE TABLE IF NOT EXISTS auth (
     email VARCHAR(255) UNIQUE,
     password VARCHAR(255)
 );
-
-INSERT INTO auth (username, email, password) VALUES ('testuser', 'testuser@gmail.com', '1234');
-
