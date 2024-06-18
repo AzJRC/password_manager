@@ -6,11 +6,36 @@ This module serves the authentication service for the application.
 
 Users that will use the application must authenticate in order to gain access to the password's database. They will rely on a Master Password that will be used to compare with the stored hashed version of that same password; if the hashed sent password matches the stored hashed password, we assume the user is how says he/she is.
 
+## Implementation guide
+
+Follow the instructions to set up the authentication service alone in a computer or server. You will need the following components:
+- Linux as your host OS
+- Docker installed
+- A computer firewall like UFW
+- MySQL DBSM in your host computer
+
+Exectute `docker build -t auth_service .` to build your image. You can also download the image in [DockerHub](https://hub.docker.com/repository/docker/rodajrc/auth_service/general).
+
+Once you have the docker image downloaded, run it with the following command:
+
+```bash
+docker run --network="host" -p 8000:8000 --name auths_service auth_service 
+```
+
+This will instantiate the container using the network interface of your host machine. If you computer is in the cloud, you may need to change some configuration parameters in your firewall and MySQL DBSM.
+
+Assuming you have UFW, use the following commands to ensure that your database is secure over the internet:
+
+```bash
+sudo ufw allow in on lo to any port 3306
+sudo ufw deny 3306
+```
+
+Also, in MySQL configuration, you must need to change the parameter `bind-address` to allow connections from anywhere. To do that, chaange the value to `0.0.0.0`. The configuraion file of MySQL can be found in `/etc/mysql/mysql.conf.d/mysqld.cnf` or `/etc/mysql/my.cnf`.
+
 ## To do's
 
-1. Sign up: There isn't a way yet to allow users register to the authentication database.
-2. Delete account or data: Users may want to delete their information from the databases. In such case, we must give the users a way to retrieve all his/her stored passwords once we delete their user.
-3. Secure credential storage: Altough the main module workflow already works, the information stored in the database isn't considering any sort of security.
+1. Delete account or data: Users may want to delete their information from the databases. In such case, we must give the users a way to retrieve all his/her stored passwords once we delete their user.
 
 ## Contributing guide
 

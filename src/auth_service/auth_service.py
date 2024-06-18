@@ -40,10 +40,10 @@ load_dotenv()
 config = {
         'MYSQL_USER': os.getenv('MYSQL_USER'),
         'MYSQL_PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'MYSQL_HOST': os.getenv('MYSQL_HOST', 'localhost'),
+        'MYSQL_HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
         'MYSQL_PORT': os.getenv('MYSQL_PORT', '3306'),
         'MYSQL_DB': os.getenv('MYSQL_DB'),
-        'JWT_SECRET': os.getenv('JWT_SECRET', '1234abcd'),
+        'JWT_SECRET': os.getenv('JWT_SECRET'),
         'JWT_EXPIRATION': os.getenv('JWT_EXPIRATION', 30),
         'JWT_ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256')
 }
