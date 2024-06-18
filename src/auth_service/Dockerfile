@@ -12,16 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /auth_service
 
 # Copy requirements.txt first to leverage Docker cache
-COPY ./requirements.txt /auth_service/
+COPY ./requirements.txt /auth_service
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY . .
+COPY . /auth_service
 
 EXPOSE 8000
 
 # Specify the command to run
-CMD ["uvicorn", "auth_service:app", "--host", "0.0.0.0", "--port", "8000"]
-
+CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8000", "auth_service.py"]
