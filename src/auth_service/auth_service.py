@@ -13,7 +13,7 @@ from passlib.context import CryptContext
 from fastapi.testclient import TestClient 
 
 # Logging for debugging
-LOGGING = False
+LOGGING = True
 if LOGGING:
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ def run_auth_service():
         """
 
         CURRENT_TIME = datetime.datetime.now(tz=datetime.timezone.utc)
-        TIME_DELTA = 60*config['JWT_EXPIRATION'] if config['JWT_EXPIRATION'] else 60*30       
+        TIME_DELTA = 60*int(config['JWT_EXPIRATION']) if config['JWT_EXPIRATION'] else 60*30       
 
         jwt_payload = {
                 "username": user.username,
@@ -161,7 +161,7 @@ def run_auth_service():
                 raise HTTPException(status_code=400, detail="The username or email is already in use")
             except Exception as e:
                 if LOGGING:
-                    logger.error("Something went wrong: %s", e)
+                    logger.error("Something went wrong (20): %s", e)
                 con.rollback()
                 raise HTTPException(status_code=500, detail="Something went wrong in the server")
             
@@ -195,13 +195,13 @@ def run_auth_service():
                         ).fetchone()
             except Exception as e:
                 if LOGGING:
-                    logger.error("Something went wrong: %s", e)
+                    logger.error("Something went wrong (10): %s", e)
                 raise HTTPException(status_code=500, detail="Something went wrong in the server")
         try: 
             password_match = crypto_context.verify(given_password, result[1])
         except Exception as e:
             if LOGGING:
-                logger.error("Something went wrong: %s", e)
+                logger.error("Something went wrong (11): %s", e)
             raise HTTPException(status_code=500, detail="Something went wrong in the server")
 
         if not result or result[0] != given_username or not password_match: 
