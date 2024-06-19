@@ -43,8 +43,8 @@ Remeber to set up a virtual environment when cloning the project. Use `python3 -
 Once you done the previous step, this module requires some secrets in order to run. Create a ``.env` file with the following lines:
 ```
 MYSQL_USER='auth_user'
-MYSQL_PASSWORD='Auth-2357'
-MYSQL_DB='auth'
+MYSQL_PASSWORD='auth_password'
+MYSQL_DB='auth_database'
 ```
 You will also need to have MySQL DBMS installed in your machine. There is a file called `init.sql` that you can use to set up the testing database and user.
 Finally, run `python3 auth_service.py` or `pytest auth_service.py` to verify that everything is working fine! You shouldn't get any error.
