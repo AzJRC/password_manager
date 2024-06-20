@@ -24,7 +24,7 @@ COPY . /auth_service
 ENV MYSQL_USER auth_user_docker
 ENV MYSQL_HOST 127.0.0.1
 
-EXPOSE 8000
+EXPOSE 8001
 
 # Specify the command to run
-CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8000", "auth_service.py"]
+CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8001", "auth_service.py"]
