@@ -1,8 +1,11 @@
 import logging, json, datetime, os, requests
+from typing import Optional
 from fastapi.testclient import TestClient
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import FastAPI, Request, Depends, HTTPException
 from dotenv import load_dotenv
+from pydantic import BaseModel
+
 
 # Logging for debugging
 LOGGING = True
@@ -23,6 +26,13 @@ MS_URLS = {
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
+# Models
+class User(BaseModel):
+    username: str
+    email: str
+    password: Optional[str]
+
+
 def run_gateway():
     """
     Main entry point to the password manager application. Users
@@ -36,24 +46,22 @@ def run_gateway():
     # Authentiction service routes
     
     @server.post("/register")
-    async def auth_register(request: Request):
-        data = await request.json()
-        if LOGGING:
-            logger.info("Register request received: %s", data)
-       
-        # Verify request
+    async def auth_register(user: User, request: Request):
+        
+        json_data = await request.json()
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+        response = requests.post(
+                f"{MS_URLS['AUTH_SERVICE_URL']}/register", 
+                headers=headers, 
+                json=json_data)
 
-        # Forward request
-        response = requests.post(f"{MS_URLS['AUTH_SERVICE_URL']}/register", json=data)
         if response.status_code != 200:
-            if LOGGING:
-                logger.error("- Registration failed (10): %s", response.text)
-            raise HTTPException(status_code=response.status_code, detail=response.json())
+            raise HTTPException(status_code=response.status_code, detail=response.text)
 
-        if LOGGING:
-            logger.info("Registration succesfull (11): %s", response.json())
-
-    # form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+        return response.json()
 
     @server.post("/login")
     async def auth_login():
