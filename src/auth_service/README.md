@@ -19,8 +19,7 @@ Exectute `docker build -t auth_service .` to build your image. You can also down
 Once you have the docker image downloaded, run it with the following command:
 
 ```bash
-docker run --network="host" -p 8000:8000 --name auth_service rodajrc/auth_service 
-```
+docker run -itd --network user_defined_bridge --name auth_service -p 8001:8001 -e MYSQL_HOST="127.0.0.1" -e MYSQL_USER="auth_user_docker" rodajrc/auth_service
 
 This will instantiate the container using the network interface of your host machine. If you computer is in the cloud, you may need to change some configuration parameters in your firewall and MySQL DBSM.
 
@@ -31,7 +30,7 @@ sudo ufw allow in on lo to any port 3306
 sudo ufw deny 3306
 ```
 
-Also, in MySQL configuration, you must need to change the parameter `bind-address` to allow connections from anywhere. To do that, chaange the value to `0.0.0.0`. The configuraion file of MySQL can be found in `/etc/mysql/mysql.conf.d/mysqld.cnf` or `/etc/mysql/my.cnf`.
+Also, in MySQL configuration, you must need to change the parameter `bind-address` to allow connections from anywhere. To do that, chaange the value to `0.0.0.0`. The configuraion file of MySQL can be found in `/etc/mysql/mysql.conf.d/mysqld.cnf` or `/etc/mysql/my.cnf`. Also, be sure to have a user in MySQL with privileges across the network or from the network of your docker container.
 
 ## To do's
 
