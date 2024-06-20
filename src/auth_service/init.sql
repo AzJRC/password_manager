@@ -1,5 +1,9 @@
-CREATE USER IF NOT EXISTS 'auth_user'@'localhost' IDENTIFIED BY 'Auth-2357';
-GRANT ALL PRIVILEGES ON auth.* TO 'auth_user'@'localhost';
+
+/* Replace localhost with the ip of the container */
+/* Replace auth_user_password with a personal password*/
+
+CREATE USER IF NOT EXISTS 'auth_user_docker'@'localhost' IDENTIFIED BY 'auth_user_password';
+GRANT ALL PRIVILEGES ON auth.* TO 'auth_user_docker'@'localhost';
 FLUSH PRIVILEGES;
 
 CREATE DATABASE IF NOT EXISTS auth;
