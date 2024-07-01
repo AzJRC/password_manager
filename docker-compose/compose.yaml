@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  gateway:
+    image: rodajrc/pswdmgr_gateway
+    ports:
+      - "8001:8001"
+    networks:
+      - external
+      - internal
+    env_file: gateway.env
+
+  auth_service:
+    depends_on:
+      - gateway
+    image: rodajrc/pswdmgr_auth
+    networks:
+      - internal
+      - database
+    env_file: auth.env
+
+networks:
+  external:
+    driver: bridge
+    name: pswdmgr_ext
+  internal:
+    driver: bridge
+    name: pswdmgr_int
+  database:
+    driver: bridge
+    name: pswdmgr_dbaccess

@@ -11,21 +11,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pip install --no-cache-dir --upgrade pip && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /auth_service
+WORKDIR /gateway
 
 # Copy requirements.txt first to leverage Docker cache
-COPY ./requirements.txt /auth_service
+COPY ./requirements.txt /gateway
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY . /auth_service
- 
-ENV MYSQL_USER auth_user_docker
-ENV MYSQL_HOST 127.0.0.1
+COPY . /gateway
 
-EXPOSE 8002
+ENV AUTH_SERVICE_URL 127.0.0.1:8002
+ENV VAULT_SERVICE_URL 127.0.0.1:8003
+
+EXPOSE 8001
 
 # Specify the command to run
-CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8002", "auth_service.py"]
+CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8001", "gateway.py"]

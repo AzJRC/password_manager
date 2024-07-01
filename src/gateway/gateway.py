@@ -18,8 +18,8 @@ load_dotenv()
 
 # Microservices
 MS_URLS = {
-    'AUTH_SERVICE_URL': os.getenv('AUTH_SERVICE_URL', 'http://localhost:8001'),
-    'VAULT_SERVICE_URL': os.getenv('VAULT_SERVICE_URL', 'http://localhost:8002')
+    'AUTH_SERVICE_URL': os.getenv('AUTH_SERVICE_URL', 'http://localhost:8002'),
+    'VAULT_SERVICE_URL': os.getenv('VAULT_SERVICE_URL', 'http://localhost:8003')
 }
 
 # Parameters
