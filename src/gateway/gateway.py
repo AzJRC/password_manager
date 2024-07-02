@@ -1,5 +1,5 @@
 import logging, json, datetime, os, requests
-from typing import Optional
+from typing import Optional, Annotated
 from fastapi.testclient import TestClient
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import FastAPI, Request, Depends, HTTPException
@@ -18,8 +18,8 @@ load_dotenv()
 
 # Microservices
 MS_URLS = {
-    'AUTH_SERVICE_URL': os.getenv('AUTH_SERVICE_URL', 'http://localhost:8001'),
-    'VAULT_SERVICE_URL': os.getenv('VAULT_SERVICE_URL', 'http://localhost:8002')
+    'AUTH_SERVICE_URL': os.getenv('AUTH_SERVICE_URL', 'http://localhost:8002'),
+    'VAULT_SERVICE_URL': os.getenv('VAULT_SERVICE_URL', 'http://localhost:8003')
 }
 
 # Parameters
@@ -30,7 +30,10 @@ MS_URLS = {
 class User(BaseModel):
     username: str
     email: str
-    password: Optional[str]
+
+      
+class SensibleUser(User):
+    password: str
 
 
 def run_gateway():
@@ -39,28 +42,53 @@ def run_gateway():
     must only have access to this interface, from which they can
     authenticate and then access their vaults.
     """
-    
+
     server = FastAPI()
 
     # Routes
     # Authentiction service routes
-    
     @server.post("/register")
-    async def auth_register(user: User, request: Request):
-        
+    async def auth_register(user: SensibleUser, request: Request):
         json_data = await request.json()
         headers = {
             'accept': 'application/json',
             'Content-Type': 'application/json',
         }
         response = requests.post(
-                f"{MS_URLS['AUTH_SERVICE_URL']}/register", 
-                headers=headers, 
-                json=json_data)
+            f"{MS_URLS['AUTH_SERVICE_URL']}/register",
+            headers=headers,
+            json=json_data)
 
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json()
 
+    @server.post("/login")
+    async def auth_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], request: Request):
+        username = form_data.username
+        password = form_data.password
+        scopes = form_data.scopes
+
+        print(form_data, username, password)
+
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        data = {
+            'username': username,
+            'password': password,
+            'scopes': scopes
+        }
+
+        response = requests.post(
+            f"{MS_URLS['AUTH_SERVICE_URL']}/login",
+            headers=headers,
+            data=data,
+            verify=False)
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
         return response.json()
 
     @server.post("/login")
@@ -68,7 +96,6 @@ def run_gateway():
         pass      
 
     # Vault service routes
-    
     @server.post("/vault")
     async def vault_post():
         pass
