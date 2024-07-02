@@ -31,7 +31,7 @@ class User(BaseModel):
     username: str
     email: str
 
-
+      
 class SensibleUser(User):
     password: str
 
@@ -90,6 +90,10 @@ def run_gateway():
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.text)
         return response.json()
+
+    @server.post("/login")
+    async def auth_login():
+        pass      
 
     # Vault service routes
     @server.post("/vault")

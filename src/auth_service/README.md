@@ -20,6 +20,7 @@ Once you have the docker image downloaded, run it with the following command:
 
 ```bash
 docker run --network="host" -p 8000:8000 --name auths_service auth_service 
+docker run -itd --network user_defined_bridge --name auth_service -p 8001:8001 -e MYSQL_HOST="127.0.0.1" -e MYSQL_USER="auth_user_docker" rodajrc/auth_service
 ```
 
 This will instantiate the container using the network interface of your host machine. If you computer is in the cloud, you may need to change some configuration parameters in your firewall and MySQL DBSM.
@@ -31,7 +32,7 @@ sudo ufw allow in on lo to any port 3306
 sudo ufw deny 3306
 ```
 
-Also, in MySQL configuration, you must need to change the parameter `bind-address` to allow connections from anywhere. To do that, chaange the value to `0.0.0.0`. The configuraion file of MySQL can be found in `/etc/mysql/mysql.conf.d/mysqld.cnf` or `/etc/mysql/my.cnf`.
+Also, in MySQL configuration, you must need to change the parameter `bind-address` to allow connections from anywhere. To do that, chaange the value to `0.0.0.0`. The configuraion file of MySQL can be found in `/etc/mysql/mysql.conf.d/mysqld.cnf` or `/etc/mysql/my.cnf`. Also, be sure to have a user in MySQL with privileges across the network or from the network of your docker container.
 
 ## To do's
 
@@ -43,8 +44,8 @@ Remeber to set up a virtual environment when cloning the project. Use `python3 -
 Once you done the previous step, this module requires some secrets in order to run. Create a ``.env` file with the following lines:
 ```
 MYSQL_USER='auth_user'
-MYSQL_PASSWORD='Auth-2357'
-MYSQL_DB='auth'
+MYSQL_PASSWORD='auth_password'
+MYSQL_DB='auth_database'
 ```
 You will also need to have MySQL DBMS installed in your machine. There is a file called `init.sql` that you can use to set up the testing database and user.
 Finally, run `python3 auth_service.py` or `pytest auth_service.py` to verify that everything is working fine! You shouldn't get any error.

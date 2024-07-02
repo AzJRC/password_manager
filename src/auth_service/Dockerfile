@@ -21,11 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . /auth_service
- 
+
 ENV MYSQL_USER auth_user_docker
 ENV MYSQL_HOST 127.0.0.1
 
-EXPOSE 8002
+EXPOSE 8001
 
 # Specify the command to run
-CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8002", "auth_service.py"]
+CMD ["fastapi","run", "--host", "0.0.0.0", "--port", "8001", "auth_service.py"]
