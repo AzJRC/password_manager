@@ -1,31 +1,46 @@
-version: '3.8'
-
 services:
   gateway:
-    image: rodajrc/pswdmgr_gateway
+    build:
+      context: ./../src/gateway
+      dockerfile: Dockerfile
     ports:
       - "8001:8001"
-    networks:
-      - external
-      - internal
-    env_file: gateway.env
-
-  auth_service:
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8002
+      - VAULT_SERVICE_URL=http://vault-service:8003
     depends_on:
-      - gateway
-    image: rodajrc/pswdmgr_auth
+      - auth-service
     networks:
-      - internal
-      - database
-    env_file: auth.env
+      - backend
+
+  auth-service:
+    build:
+      context: ./../src/auth_service
+      dockerfile: Dockerfile
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=auth_user_docker
+      - MYSQL_PASSWORD=auth_user_password
+      - MYSQL_DB=auth
+      - JWT_SECRET=1234 
+    depends_on:
+      - mysql
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: auth
+      MYSQL_USER: auth_user_docker
+      MYSQL_PASSWORD: auth_user_password
+    volumes:
+      - ./../src/auth_service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
 
 networks:
-  external:
+  backend:
     driver: bridge
-    name: pswdmgr_ext
-  internal:
-    driver: bridge
-    name: pswdmgr_int
-  database:
-    driver: bridge
-    name: pswdmgr_dbaccess
+

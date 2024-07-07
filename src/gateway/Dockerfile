@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . /gateway
 
-ENV AUTH_SERVICE_URL 127.0.0.1:8002
-ENV VAULT_SERVICE_URL 127.0.0.1:8003
+ENV AUTH_SERVICE_URL=127.0.0.1:8002
+ENV VAULT_SERVICE_URL=127.0.0.1:8003
 
 EXPOSE 8001
 

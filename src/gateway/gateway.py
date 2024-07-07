@@ -80,20 +80,17 @@ def run_gateway():
             'password': password,
             'scopes': scopes
         }
-
+        
         response = requests.post(
-            f"{MS_URLS['AUTH_SERVICE_URL']}/login",
-            headers=headers,
-            data=data,
-            verify=False)
+                f"{MS_URLS['AUTH_SERVICE_URL']}/login",
+                headers=headers,
+                data=data,
+                verify=False)
 
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.text)
         return response.json()
 
-    @server.post("/login")
-    async def auth_login():
-        pass      
 
     # Vault service routes
     @server.post("/vault")
