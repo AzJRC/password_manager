@@ -1,9 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError
+from ..controller import register_controller
 
-from ..utils.passlib_context import crypto_context
-from ..model.database import engine
 from ..view.schemas import SensibleUser
 from ..utils.logger import LOGGING
 if LOGGING:
@@ -21,40 +18,17 @@ async def register(form_data: SensibleUser):
     if not given_username or not given_password or not given_email:
         if LOGGING:
             logger.warning("Missing username, password or email for register attempt.")
-        raise HTTPException(status_code=401, detail="Missing username, password or email")
+        raise HTTPException(status_code=401, detail="Missing username, password, or email.")
 
     if LOGGING:
         logger.info("Register attempt for user: %s - %s", given_username, given_email)
 
-    # (TODO: Verify email address? )
+    # (TODO: Verify email address)
 
-    # Hash password (TODO: implement salting)
-    hashed_password = crypto_context.hash(given_password)
-
-    # Store username in database
-    with engine.connect() as con:
-        if LOGGING:
-            logger.info("Registering user...")
-        try:
-            con.execute(
-                text("""INSERT INTO auth (username, email, password) VALUES (:username, :email,
-                    :password)"""),
-                {"username": given_username, "email": given_email, "password": hashed_password}
-            )
-        except IntegrityError:
-            if LOGGING:
-                logger.warning("The username or email provided are already in use.")
-
-            con.rollback()
-            raise HTTPException(status_code=400, detail="The username or email is already in use")
-        except Exception as e:
-            if LOGGING:
-                logger.error("Something went wrong (20): %s", e)
-            con.rollback()
-            raise HTTPException(status_code=500, detail="Something went wrong in the server")
-
-        con.commit()
+    # sign in user
+    register_controller.sign_in_user(given_username, given_password, given_email)
 
     if LOGGING:
         logger.info("User %s registered in successfully.", given_username)
+
     return {"message": "Success"}
