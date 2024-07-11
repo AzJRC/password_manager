@@ -1,117 +1,26 @@
-import logging, json, datetime, os, requests
-from typing import Optional, Annotated
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import FastAPI, Request, Depends, HTTPException
-from dotenv import load_dotenv
-from pydantic import BaseModel
-
-
-# Logging for debugging
-LOGGING = True
+from .routes import auth_service, vault_service
+from .utils.logger import LOGGING
 if LOGGING:
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-
-# Environment Variables
-load_dotenv()
-
-# Microservices
-MS_URLS = {
-    'AUTH_SERVICE_URL': os.getenv('AUTH_SERVICE_URL', 'http://localhost:8002'),
-    'VAULT_SERVICE_URL': os.getenv('VAULT_SERVICE_URL', 'http://localhost:8003')
-}
-
-# Parameters
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-
-# Models
-class User(BaseModel):
-    username: str
-    email: str
-
-      
-class SensibleUser(User):
-    password: str
+    from .utils.logger import logger
+    logger.info("Authentication Microservice has been Started.")
 
 
 def run_gateway():
     """
-    Main entry point to the password manager application. Users
-    must only have access to this interface, from which they can
-    authenticate and then access their vaults.
+    FastAPI Web Server
+    This is the entry point of the Overall Password Manager Applciation.
+    This microservice handles and forwards requests to the corresponding microservices,
+    either the authentication microservice or the vault microservice.
+    To know more about this part of the Password Manager Applicatin, you may want to
+    refer to the README file located in the same directory where this file is.
     """
 
     server = FastAPI()
 
-    # Routes
-    # Authentiction service routes
-    @server.post("/register")
-    async def auth_register(user: SensibleUser, request: Request):
-        json_data = await request.json()
-        headers = {
-            'accept': 'application/json',
-            'Content-Type': 'application/json',
-        }
-        response = requests.post(
-            f"{MS_URLS['AUTH_SERVICE_URL']}/register",
-            headers=headers,
-            json=json_data)
-
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-        return response.json()
-
-    @server.post("/login")
-    async def auth_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], request: Request):
-        username = form_data.username
-        password = form_data.password
-        scopes = form_data.scopes
-
-        print(form_data, username, password)
-
-        headers = {
-            'accept': 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-        data = {
-            'username': username,
-            'password': password,
-            'scopes': scopes
-        }
-        
-        response = requests.post(
-                f"{MS_URLS['AUTH_SERVICE_URL']}/login",
-                headers=headers,
-                data=data,
-                verify=False)
-
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-        return response.json()
-
-
-    # Vault service routes
-    @server.post("/vault")
-    async def vault_post():
-        pass
-
-    @server.put("/vault")
-    async def vault_put():
-        pass
-
-    @server.get("/vault")
-    async def vault_getAll():
-        pass
-
-    @server.get("/vault/{site}")
-    async def vault_getFromSite():
-        pass
-
-    @server.get("/vault/{site-url}")
-    async def vault_getFromURL():
-        pass
+    server.include_router(auth_service.router)
+    server.include_router(vault_service.router)
 
     return server
 
@@ -120,7 +29,6 @@ server = run_gateway()
 
 
 # Unit tests
-
 def test_gateway():
     server = run_gateway()
     client = TestClient(server)
