@@ -28,7 +28,7 @@ def verify_user(given_username: str, given_password: str) -> tuple[str]:
     with engine.connect() as con:
         try:
             verified_user = con.execute(
-                text("SELECT username, password, email FROM auth WHERE username=:username"),
+                text("SELECT username, password, email FROM users WHERE username=:username"),
                 {"username": given_username}
             ).fetchone()
         except Exception as e:
@@ -50,6 +50,7 @@ def verify_user(given_username: str, given_password: str) -> tuple[str]:
             logger.error("Something went wrong: %s", e)
         raise HTTPException(status_code=500, detail="Something went wrong in the server.")
 
+    print(password, given_password, password_match)
     # Verify that the user provided the correct password
     if not username or not password_match:
         if LOGGING:

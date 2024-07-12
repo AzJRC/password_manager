@@ -5,13 +5,13 @@
    corresponding new values to your sever via environment variables, or if using Docker, pass the credentials as
    needed.*/
 
-CREATE USER IF NOT EXISTS 'auth_user_docker'@'%' IDENTIFIED BY 'auth_user_password';
-GRANT ALL PRIVILEGES ON auth.* TO 'auth_user_docker'@'%';
+CREATE USER IF NOT EXISTS 'pwdmgr_admin'@'%' IDENTIFIED BY 'pwdmgr_admin_password';
+GRANT ALL PRIVILEGES ON pwdmgr.* TO 'pwdmgr_admin'@'%';
 FLUSH PRIVILEGES;
 
-CREATE DATABASE IF NOT EXISTS auth;
-USE auth;
-CREATE TABLE IF NOT EXISTS auth (
+CREATE DATABASE IF NOT EXISTS pwdmgr;
+USE pwdmgr;
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) UNIQUE,
     email VARCHAR(255) UNIQUE,

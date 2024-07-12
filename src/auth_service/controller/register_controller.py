@@ -27,10 +27,11 @@ def sign_in_user(given_username: str, given_email: str, given_password: str) -> 
     if LOGGING:
         logger.info("Registering user...")
 
+    # (TODO) Define sqlalchemy models
     with engine.connect() as con:
         try:
             con.execute(
-                text("""INSERT INTO auth (username, email, password) VALUES (:username, :email,
+                text("""INSERT INTO users (username, email, password) VALUES (:username, :email,
                     :password)"""),
                 {"username": given_username, "email": given_email, "password": hashed_password}
             )

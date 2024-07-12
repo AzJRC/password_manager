@@ -1,25 +1,11 @@
 import jwt
 import datetime
-import os
-from dotenv import load_dotenv
 
+from ..config import config
 from ..view.schemas import User
 from .logger import LOGGING
 if LOGGING:
     from .logger import logger
-
-"""
-+ JWT_SECRET: [STRING] A signature to ensure the validity of the JWT token.
-+ JWT_EXPIRATION: [INT] Number of MINUTES the JWT will be acceptable.
-+ JWT_ALGORITHM: [STRING] Algorithm used for signing process.
-"""
-
-load_dotenv()
-config = {
-    'JWT_SECRET': os.getenv('JWT_SECRET'),
-    'JWT_EXPIRATION': os.getenv('JWT_EXPIRATION', 30),
-    'JWT_ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256')
-}
 
 
 def create_token(username, email):
