@@ -17,9 +17,17 @@ def run_auth_service():
 
     # server.include_router(login.router)
     # server.include_router(register.router)
-    
-    @server.post("/vault")
-    def store():
+
+    @server.post("/vault/create")
+    def create_vault():
+        pass
+
+    @server.post("/vault/entry")
+    def create_vault_entry():
+        pass
+
+    @server.get("/vault/entry")
+    def get_vault_entry():
         pass
 
     return server
