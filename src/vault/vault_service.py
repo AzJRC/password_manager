@@ -20,7 +20,7 @@ def run_auth_service():
 
     @server.post("/vault/create")
     def create_vault():
-        pass
+        return "vault created"
 
     @server.post("/vault/entry")
     def create_vault_entry():
