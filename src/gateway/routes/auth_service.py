@@ -19,7 +19,7 @@ async def auth_register(user: SensibleUser, request: Request):
         logger.info("Auth Service Request: User Registration Action.")
 
     # Request
-    json_data = await request.json()
+    req_json_data = await request.json()
     headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json'
@@ -29,7 +29,7 @@ async def auth_register(user: SensibleUser, request: Request):
     auth_response = requests.post(
         f"{MS_URLS['AUTH_SERVICE_URL']}/register",
         headers=headers,
-        json=json_data
+        json=req_json_data
     )
 
     # Return unsuccesfull responses
@@ -42,7 +42,6 @@ async def auth_register(user: SensibleUser, request: Request):
         logger.info(f"User Registration Successfull (1/2): auth_service[{auth_response.json()}]")
 
     # Create user's vault
-    json_data = await request.json()
     headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json'
@@ -51,7 +50,7 @@ async def auth_register(user: SensibleUser, request: Request):
     vault_response = requests.post(
         f"{MS_URLS['VAULT_SERVICE_URL']}/vault/create",
         headers=headers,
-        json=json_data
+        json=auth_response.json()
     )
 
     if vault_response.status_code != 200:

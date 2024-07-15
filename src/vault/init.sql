@@ -14,7 +14,7 @@ USE pwdmgr;
 
 CREATE TABLE IF NOT EXISTS vaults (	
 	vault_id INT AUTO_INCREMENT PRIMARY KEY,
-	user_id INT REFERENCES users(user_id)
+	user_id INT REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS vault_entries (
