@@ -31,6 +31,7 @@ def sign_in_user(given_username: str, given_email: str, given_password: str, ret
     # (TODO) Define sqlalchemy models
     with engine.connect() as con:
         try:
+
             # Insert new user record
             con.execute(
                 text("""
@@ -39,6 +40,7 @@ def sign_in_user(given_username: str, given_email: str, given_password: str, ret
                 {"username": given_username, "email": given_email, "password": hashed_password}
             )
             last_insert_id = con.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
             # Retrieve the inserted record
             if returning:
                 sign_in = con.execute(
