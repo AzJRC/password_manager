@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . /auth_service
 
-ENV MYSQL_USER=auth_user_docker
+ENV MYSQL_USER=pwdmgr_admin
 ENV MYSQL_HOST=127.0.0.1
 
 EXPOSE 8002

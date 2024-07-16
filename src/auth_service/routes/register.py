@@ -26,9 +26,9 @@ async def register(form_data: SensibleUser):
     # (TODO: Verify email address)
 
     # sign in user
-    register_controller.sign_in_user(given_username, given_password, given_email)
+    user_registration_entry = register_controller.sign_in_user(given_username, given_email, given_password)
 
     if LOGGING:
         logger.info("User %s registered in successfully.", given_username)
 
-    return {"message": "Success"}
+    return {"message": "Success", "details": user_registration_entry}

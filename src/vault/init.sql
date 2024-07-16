@@ -11,9 +11,16 @@ FLUSH PRIVILEGES;
 
 CREATE DATABASE IF NOT EXISTS pwdmgr;
 USE pwdmgr;
-CREATE TABLE IF NOT EXISTS users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) UNIQUE,
-    email VARCHAR(255) UNIQUE,
-    password VARCHAR(255)
+
+CREATE TABLE IF NOT EXISTS vaults (	
+	vault_id INT AUTO_INCREMENT PRIMARY KEY,
+	user_id INT REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS vault_entries (
+	entry_id INT AUTO_INCREMENT PRIMARY KEY,
+       	vault_id INT REFERENCES vaults(vault_id),
+	service_name VARCHAR(255) NOT NULL,
+	encrypted_password TEXT NOT NULL
+);
+
