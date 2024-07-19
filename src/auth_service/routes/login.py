@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from ..controller import login_controller
 from ..utils.create_token import create_token
 from ..view.schemas import User
+from ..utils.fastapi_security import oauth2_scheme
 from ..utils.logger import LOGGING
 if LOGGING:
     from ..utils.logger import logger

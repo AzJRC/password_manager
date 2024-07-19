@@ -19,8 +19,11 @@ CREATE TABLE IF NOT EXISTS vaults (
 
 CREATE TABLE IF NOT EXISTS vault_entries (
 	entry_id INT AUTO_INCREMENT PRIMARY KEY,
-       	vault_id INT REFERENCES vaults(vault_id),
+       	vault_id INT NOT NULL REFERENCES vaults(vault_id),
 	service_name VARCHAR(255) NOT NULL,
-	encrypted_password TEXT NOT NULL
+	service_url VARCHAR(255) NOT NULL,
+	username VARCHAR(255),
+	email VARCHAR(255),
+	secret TEXT NOT NULL
 );
 

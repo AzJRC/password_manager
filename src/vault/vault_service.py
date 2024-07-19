@@ -35,7 +35,6 @@ def run_auth_service():
             except IntegrityError:
                 print("Something weird that should not happen, happened")
                 con.rollback()
-
             except Exception as e:
                 print(e)
                 con.rollback()
@@ -43,8 +42,32 @@ def run_auth_service():
         return "vault created"
 
     @server.post("/vault/entry")
-    def create_vault_entry():
-        pass
+    def create_vault_entry(data: Annotated[dict, Body()]):
+        entry_data = data["entry"]
+        with engine.connect() as con:
+            try:
+                query = text("""INSERT INTO vault_entries (vault_id, service_name, service_url, username, email, secret)
+                    VALUES (:vault_id, :service_name, :service_url, :username, :email, :secret);""")
+                params = {
+                    "vault_id": entry_data["vault_id"],
+                    "service_name": entry_data["service_name"],
+                    "service_url": entry_data["service_url"],
+                    "username": entry_data["username"],
+                    "email": entry_data["email"],
+                    "secret": entry_data["secret"]
+                }
+                con.execute(query, params)
+                con.commit()
+            except IntegrityError:
+                print("Something weird that should not happen, happened")
+                con.rollback()
+                return 1
+            except Exception as e:
+                print(e)
+                con.rollback()
+                return 2
+
+        return "entry added"
 
     @server.get("/vault/entry")
     def get_vault_entry():
