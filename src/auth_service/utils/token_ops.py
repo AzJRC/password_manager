@@ -1,5 +1,6 @@
-import jwt
 import datetime
+import jwt
+from jwt.exceptions import InvalidTokenError
 
 from ..config import config
 from ..view.schemas import User
@@ -8,7 +9,7 @@ if LOGGING:
     from .logger import logger
 
 
-def create_token(username, email):
+def create_token(user_id, username, email):
     """
     Create a JWT token given the user's infomation.
 
@@ -25,9 +26,10 @@ def create_token(username, email):
     if LOGGING:
         logger.info(f"Creating Token for User: {username}")
 
-    user = User(username=username, email=email)
+    user = User(user_id=user_id, username=username, email=email)
 
     jwt_payload = {
+        "user_id": user.user_id,
         "username": user.username,
         "expiration": (CURRENT_TIME + datetime.timedelta(seconds=TIME_DELTA)).isoformat(),
         "issued_at": (CURRENT_TIME).isoformat()
@@ -39,3 +41,19 @@ def create_token(username, email):
     )
 
     return jwt_token
+
+# (TODO)
+async def validate_token(jwt_token: str) -> dict|bool:
+    try:
+        payload = jwt.decode(jwt_token, config["JWT_SECRET"], algorithms=[config["JWT_ALGORITHM"]])
+    except InvalidTokenError as e:
+        if LOGGING:
+            logger.warning(f"Token validation error: {e}")
+        return False
+    return payload
+
+async def validate_token_entry(jwt_token: str) -> bool:
+    return True
+
+async def validate_token_info(payload: dict) -> bool:
+    return True

@@ -35,7 +35,7 @@ async def add_vault_entry(access_token: Annotated[str, Body()], entry: VaultEntr
         'Content-Type': 'application/json'
     }
 
-    # Validate access_token
+    # Validate access_token (TODO)
 
     # Calling the request
     vault_response = requests.post(
@@ -61,8 +61,28 @@ async def modify_vault_entry(token: Annotated[str, Depends(auth_login)]):
 
 
 @router.get("/vault")
-async def get_all_vault_entries(token: Annotated[str, Depends(auth_login)]):
-    pass
+async def get_all_vault_entries(request: Request):
+    user_info = request.state.user_info
+    
+    headers = {
+        'accept': 'application/json',
+    }
+    
+    # get_vault_id with user_info.user_id
+    vault_id = requests.get(
+        f"{MS_URLS['VAULT_SERVICE_URL']}/vault/get_vault?user_id={user_info['user_id']}",
+        headers=headers
+    )
+    
+    vault_id=4  # (TODO TMP)
+
+    # request all vault entries
+    vault_response = requests.get(
+        f"{MS_URLS['VAULT_SERVICE_URL']}/vault/entry?vault_id={vault_id}",
+        headers=headers
+    )
+
+    return vault_response.json()
 
 
 @router.get("/vault/{site}")

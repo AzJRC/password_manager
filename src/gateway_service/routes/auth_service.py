@@ -2,7 +2,9 @@ import requests
 from typing import Annotated
 from fastapi import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from fastapi import Request, Depends, HTTPException
+from http.cookies import SimpleCookie
 
 from ..schemas.users import SensibleUser
 from ..config import MS_URLS
@@ -36,7 +38,7 @@ async def auth_register(user: SensibleUser, request: Request):
     if auth_response.status_code != 200:
         if LOGGING:
             logger.info("Auth Service Error: User registration failed.")
-        return auth_response.json()
+        return auth_response
 
     if LOGGING:
         logger.info(f"User Registration Successfull (1/2): auth_service[{auth_response.json()}]")
@@ -50,14 +52,14 @@ async def auth_register(user: SensibleUser, request: Request):
     vault_response = requests.post(
         f"{MS_URLS['VAULT_SERVICE_URL']}/vault/create",
         headers=headers,
-        json=auth_response.json()
+        json=auth_response
     )
 
     if vault_response.status_code != 200:
         if LOGGING:
             logger.info("Vault Service Error: User's vault creation failed.")
             # (TODO) Delete user's account on vault creation failure
-        return vault_response.json()
+        return vault_response
 
     if LOGGING:
         logger.info(f"User Registration Successfull (2/2): vault_service[{vault_response.json()}]")
@@ -72,8 +74,6 @@ async def auth_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     username = form_data.username
     password = form_data.password
     scopes = form_data.scopes
-
-    print(form_data, username, password)
 
     headers = {
         'accept': 'application/json',
@@ -91,7 +91,25 @@ async def auth_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         data=data,
         verify=False
     )
-
+    
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-    return response.json()
+        return response.json()
+   
+    client_response = JSONResponse(content=response.json()) 
+
+    cookie_header = response.headers.get('set-cookie')
+    if cookie_header:
+        cookie = SimpleCookie(cookie_header)
+        for key, morsel in cookie.items():
+            client_response.set_cookie(
+                key=key,
+                value=morsel.value,
+                httponly=morsel.get('httponly', False),
+                secure=morsel.get('secure', False),
+                expires=morsel.get('expires'),
+                domain=morsel.get('domain'),
+                path=morsel.get('path', '/'),
+                samesite=morsel.get('samesite')
+            )
+
+    return client_response

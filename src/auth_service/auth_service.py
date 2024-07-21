@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from .routes import login, register
+from .routes import login, register, validate
 
 from .utils.logger import LOGGING
 if LOGGING:
@@ -28,6 +28,7 @@ def run_auth_service():
 
     server.include_router(login.router)
     server.include_router(register.router)
+    server.include_router(validate.router)
 
     return server
 

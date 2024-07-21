@@ -28,7 +28,7 @@ def verify_user(given_username: str, given_password: str) -> tuple[str]:
     with engine.connect() as con:
         try:
             verified_user = con.execute(
-                text("SELECT username, password, email FROM users WHERE username=:username"),
+                text("SELECT user_id, username, password, email FROM users WHERE username=:username"),
                 {"username": given_username}
             ).fetchone()
         except Exception as e:
@@ -38,11 +38,12 @@ def verify_user(given_username: str, given_password: str) -> tuple[str]:
     if LOGGING:
         logger.info("Verification completed.")
 
-    username = verified_user[0]
-    password = verified_user[1]
-    email = verified_user[2]
+    user_id = verified_user[0]
+    username = verified_user[1]
+    password = verified_user[2]
+    email = verified_user[3]
 
-    # Compare user's password with user's given_password
+    # Verify user given information with user stored information
     try:
         password_match = crypto_context.verify(given_password, password)
     except Exception as e:
@@ -50,11 +51,10 @@ def verify_user(given_username: str, given_password: str) -> tuple[str]:
             logger.error("Something went wrong: %s", e)
         raise HTTPException(status_code=500, detail="Something went wrong in the server.")
 
-    print(password, given_password, password_match)
-    # Verify that the user provided the correct password
     if not username or not password_match:
         if LOGGING:
             logger.warning("Username or password are not correct: %s", given_username)
         raise HTTPException(status_code=401, detail="Username or password are incorrect.")
 
-    return (username, password, email)
+    # Return on successfull verification
+    return (user_id, username, password, email)

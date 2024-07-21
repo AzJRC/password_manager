@@ -70,8 +70,19 @@ def run_auth_service():
         return "entry added"
 
     @server.get("/vault/entry")
-    def get_vault_entry():
-        pass
+    def get_all_vault_entries(vault_id: int):
+        with engine.connect() as con:
+            query = text("""SELECT service_name, service_url, username, email, secret
+                            FROM vault_entries 
+                            WHERE vault_id=:vault_id;""")
+            params = {"vault_id": vault_id}
+            try:
+                query_result = con.execute(query, params)
+            except Exception as e:
+                print(e)
+                return 1
+            entries = [row._mapping for row in query_result]
+            return entries 
 
     return server
 

@@ -23,5 +23,6 @@ config = {
     'MYSQL_DB': os.getenv('MYSQL_DB'),
     'JWT_SECRET': os.getenv('JWT_SECRET'),
     'JWT_EXPIRATION': os.getenv('JWT_EXPIRATION', 30),
-    'JWT_ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256')
+    'JWT_ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256'),
+    'HTTPS_ENABLED': os.getenv('HTTPS_ENABLED', 0)
 }
