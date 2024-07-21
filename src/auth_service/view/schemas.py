@@ -6,7 +6,8 @@ class User(BaseModel):
     This schema contains non-sensible user informationr.
     Private information of a user is defined in the SensibleUser schema.
     """
-
+    
+    user_id: int
     username: str
     email: str  # TODO
 
