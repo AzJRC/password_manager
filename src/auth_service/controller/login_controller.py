@@ -51,6 +51,7 @@ def verify_user(given_username: str, given_password: str) -> tuple[str]:
             logger.error("Something went wrong: %s", e)
         raise HTTPException(status_code=500, detail="Something went wrong in the server.")
 
+    # Verify that the user provided the correct password
     if not username or not password_match:
         if LOGGING:
             logger.warning("Username or password are not correct: %s", given_username)

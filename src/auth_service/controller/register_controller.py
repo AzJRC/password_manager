@@ -59,6 +59,5 @@ def sign_in_user(given_username: str, given_email: str, given_password: str, ret
                 logger.error("Something went wrong: %s", e)
             con.rollback()
             raise HTTPException(status_code=500, detail="Something went wrong in the server.")
-
         if returning:
             return sign_in._mapping
